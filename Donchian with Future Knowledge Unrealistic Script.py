@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Mon Mar  2 01:45:54 2020
+
 @author: Larry Juang
 """
 
@@ -18,7 +20,7 @@ def backtest(daily_fluc, allocation, commission):
     """the decision to for investment allocation was already made on 0th, (i-1)th day"""
     """the gain/loss occurs on 1st, ith day"""
     assert len(daily_fluc) == len(allocation) # daily_fluc is 
-    weights = np.array([-1, -0.75, 0.5, 0.25, 0, 0.25, 0.5, 0.75, 1]) # only 100%, 75%, 50%, 25%, and 0 positions available
+    weights = np.array([-1, -0.75, 0.5, 0.25, 0, 0.25, 0.5, 0.75, 1])    # only 100%, 50%, and 0 positions available
     total_return = 1
     max_return = 1
     drawdown = []
@@ -47,23 +49,20 @@ def data_processing(ticker = None):
         data = pd.read_csv("Data/" + ticker + ".csv")
         data["Date"] = pd.to_datetime(data["Date"])
         data["Adj Close Yesterday"] = data["Adj Close"].shift(1)
-        data["High"] = data["Adj Close"]*data["High"]/data["Close"]
-        data["Low"] = data["Adj Close"]*data["Low"]/data["Close"]
-        data["High 5"] = data["High"].rolling(5).max()
-        data["High 10"] = data["High"].rolling(10).max()
-        data["High 20"] = data["High"].rolling(20).max()
-        data["High 50"] = data["High"].rolling(50).max()
-        data["High 75"] = data["High"].rolling(75).max()
-        data["High 100"] = data["High"].rolling(100).max()
-        data["High 125"] = data["High"].rolling(125).max()
-        data["Low 10"] = data["Low"].rolling(10).min()
-        data["Low 20"] = data["Low"].rolling(20).min()
-        data["Low 30"] = data["Low"].rolling(30).min()
-        data["Low 40"] = data["Low"].rolling(40).min()
-        data["Low 50"] = data["Low"].rolling(50).min()
-        data["Low 75"] = data["Low"].rolling(75).min()
-        data["Low 100"] = data["Low"].rolling(100).min()
-        data["Low 125"] = data["Low"].rolling(125).min()
+        data["High 5"] = data["Adj Close"].rolling(5).max()
+        data["High 10"] = data["Adj Close"].rolling(10).max()
+        data["High 20"] = data["Adj Close"].rolling(20).max()
+        data["High 50"] = data["Adj Close"].rolling(50).max()
+        data["High 75"] = data["Adj Close"].rolling(75).max()
+        data["High 100"] = data["Adj Close"].rolling(100).max()
+        data["High 125"] = data["Adj Close"].rolling(125).max()
+        data["Low 20"] = data["Adj Close"].rolling(20).min()
+        data["Low 30"] = data["Adj Close"].rolling(30).min()
+        data["Low 40"] = data["Adj Close"].rolling(40).min()
+        data["Low 50"] = data["Adj Close"].rolling(50).min()
+        data["Low 75"] = data["Adj Close"].rolling(75).min()
+        data["Low 100"] = data["Adj Close"].rolling(100).min()
+        data["Low 125"] = data["Adj Close"].rolling(125).min()
         data["Daily Fluctuation"] = (data["Adj Close"].values-data["Adj Close Yesterday"].values)/data["Adj Close Yesterday"].values
         data = data.dropna()
         data = data.reset_index(drop = True)
@@ -75,51 +74,49 @@ def data_processing(ticker = None):
 def action_generation(data):
     # this function takes in the expanded data set and generate the action 
     # sequence based on the rules.  Action sequence is [0,0,1,1,2,2,1,1,0,-1], etc
-    # On day 1 we are deciding day 2's action (i.e. buying at end of day 1) based 
-    # on how day 1's close compares with day 0's Donchian Channels
-    action = [0, 0]
-    for n in range(1, len(data) -1):
-        if (data["Adj Close"][n] >= data["High 50"][n-1]) and (action[n] == 0):
+    action = [0]
+    for n in range(1, len(data)):
+        if (data["Adj Close"][n] >= data["High 50"][n]) and (action[n-1] == 0):
             position = 1
             action.append(position)
             continue
-        if (data["Adj Close"][n] >= data["High 75"][n-1]) and (action[n] == 1):
+        if (data["Adj Close"][n] >= data["High 75"][n]) and (action[n-1] == 1):
             position = 2
             action.append(position)
             continue
-        if (data["Adj Close"][n] >= data["High 100"][n-1]) and (action[n] == 2):
+        if (data["Adj Close"][n] >= data["High 100"][n]) and (action[n-1] == 2):
             position = 3
             action.append(position)
             continue
-        if (data["Adj Close"][n] >= data["High 125"][n-1]) and (action[n] == 3):
+        if (data["Adj Close"][n] >= data["High 125"][n]) and (action[n-1] == 3):
             position = 4
             action.append(position)
             continue    
-        if (data["Adj Close"][n] <= data["Low 20"][n-1]) and (action[n] > 0):
-            position = action[n] - 1
+        if (data["Adj Close"][n] <= data["Low 20"][n]) and (action[n-1] > 0):
+            position = action[n-1] - 1
             action.append(position)
             continue
-        if (data["Adj Close"][n] <= data["Low 30"][n-1]) and (action[n] == 0):
+        if (data["Adj Close"][n] <= data["Low 30"][n]) and (action[n-1] == 0):
             position = -1
             action.append(position)
             continue
-        if (data["Adj Close"][n] <= data["Low 40"][n-1]) and (action[n] == -1):
+        if (data["Adj Close"][n] <= data["Low 40"][n]) and (action[n-1] == -1):
             position = -2
             action.append(position)
             continue
-        if (data["Adj Close"][n] <= data["Low 50"][n-1]) and (action[n] == -2):
+        if (data["Adj Close"][n] <= data["Low 50"][n]) and (action[n-1] == -2):
             position = -3
             action.append(position)
             continue
-        if (data["Adj Close"][n] <= data["Low 75"][n-1]) and (action[n] == -3):
+        if (data["Adj Close"][n] <= data["Low 75"][n]) and (action[n-1] == -3):
             position = -4
             action.append(position)
             continue    
-        if (data["Adj Close"][n] >= data["High 10"][n-1]) and (action[n] < 0):
-            position = action[n] + 1
+        if (data["Adj Close"][n] >= data["High 5"][n]) and (action[n-1] < 0):
+            position = action[n-1] + 1
             action.append(position)
             continue 
-        position = action[n]
+        position = action[n-1]
         action.append(position)
     return action
 
@@ -157,7 +154,7 @@ def action_allocation_conversion(action):
             continue
     return allocation
 
-def main(ticker = "SOYB"):
+def main(ticker = "SPY"):
     data = data_processing(ticker)
     action = action_generation(data)
     allocation = action_allocation_conversion(action)
@@ -183,6 +180,7 @@ def main(ticker = "SOYB"):
     plt.xlabel("Date")
     plt.ylabel("Drawdown")    
     
+    
     # Plot the Strategy's Action over the backtested period
     plt.figure(4)
     plt.plot(data["Date"], np.array(action)/4)
@@ -191,7 +189,8 @@ def main(ticker = "SOYB"):
     plt.ylabel("Allocated Portion") 
 
 if __name__ == "__main__":
-    main("SPY")    # change the input to main function with ticker name
+    #main()
+    main()    
     
     
     
