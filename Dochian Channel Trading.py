@@ -187,7 +187,7 @@ def main(ticker = "SPY"):
     plt.ylabel("Allocated Portion") 
 
 if __name__ == "__main__":
-    main()    
+    main("USO")    # change the input to main function with ticker name
     
     
     
